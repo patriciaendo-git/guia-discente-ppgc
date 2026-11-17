@@ -95,11 +95,23 @@ ol.tl .rail::before{content:"";position:absolute;top:0;bottom:0;width:2px;backgr
 ol.tl li:first-child .rail::before{top:8px}
 ol.tl li:last-child .rail::before{bottom:calc(100% - 8px)}
 ol.tl .dot{position:relative;margin-top:5px;width:14px;height:14px;border-radius:50%;background:var(--surface);border:3px solid var(--ink)}
-ol.tl li.past .dot{background:var(--ink)}
-ol.tl li.limit .dot{border-color:var(--bad)}
-ol.tl li.soft .dot{border-style:dashed}
 ol.tl li.today .dot{border-color:var(--accent);background:var(--accent)}
-ol.tl .body{padding-bottom:18px;display:grid;gap:3px;min-width:0}
+ol.tl .body{padding-bottom:18px;display:grid;gap:4px;min-width:0}
+.tl-head{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px}
+.tl-foot{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px}
+.tl-chk{color:var(--ink);font-size:14px}
+ol.tl .auto{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+ol.tl li.k-tick .dot{width:10px;height:10px;border-width:2px;margin-top:6px;border-color:var(--muted)}
+ol.tl li.k-tick .body{padding-bottom:12px}
+ol.tl li.k-info .dot{border-color:var(--muted);border-style:dashed}
+ol.tl li.done .dot{background:var(--good);border-color:var(--good)}
+ol.tl li.late .dot{border-color:var(--bad);background:var(--bad)}
+ol.tl li.past:not(.done):not(.late) .dot{background:var(--ink)}
+.late-msg{color:var(--bad)}
+.next{display:grid;gap:4px;border-left:4px solid var(--accent);background:var(--accent-soft);border-radius:8px;padding:12px 16px}
+.next .art,.next .pill{vertical-align:1px}
+.next.late-box{border-left-color:var(--bad);background:var(--bad-soft)}
+.next.ok-box{border-left-color:var(--good);background:var(--good-soft)}
 ol.tl li.past .body h3{color:var(--muted)}
 ol.tl li.today .when{color:var(--accent);font-weight:600}
 .note{font-size:14px;color:var(--muted);border-left:3px solid var(--line);padding-left:10px}
@@ -169,6 +181,20 @@ ul.risks li.hit .txt p{color:var(--ink)}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:grid;gap:6px;align-content:start}
 .card p{font-size:14px;color:var(--muted)}
 
+.doc-card{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 24px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;text-decoration:none;color:var(--ink)}
+.doc-card:hover{border-color:var(--accent)}
+.doc-list{display:grid;gap:4px;min-width:0}
+.doc-item{font-size:15px}
+.doc-card .go{font-weight:700;color:var(--accent);white-space:nowrap}
+.ee-table td{font-size:15px}
+.ee-table td.num{font-family:var(--f-mono);text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.report-panel{display:grid;gap:14px}
+.report-fields{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:10px}
+.report-fields input{width:100%}
+.report-img-wrap{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:12px;display:flex;justify-content:center}
+.report-img-wrap img{display:block;width:100%;max-width:540px;height:auto;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+a.btn{text-decoration:none;display:inline-flex;align-items:center}
+@media (max-width:560px){.report-fields{grid-template-columns:1fr}}
 footer{border-top:1px solid var(--line);background:var(--surface)}
 footer .wrap{padding-block:22px;display:grid;gap:6px;font-size:14px;color:var(--muted)}
 @media (max-width:520px){ol.tl li{grid-template-columns:64px 16px 1fr;gap:8px}.bar nav{display:none}}
@@ -198,7 +224,7 @@ footer .wrap{padding-block:22px;display:grid;gap:6px;font-size:14px;color:var(--
   <div class="wrap">
     <span class="badge-level">Mestrado Acadêmico</span>
     <nav aria-label="Seções">
-      <a href="#prazos">Prazos</a><a href="#cra">CRA e créditos</a><a href="#posso">Posso marcar?</a><a href="#desligamento">Desligamento</a><a href="#pedidos">Pedidos</a>
+      <a href="#prazos">Prazos</a><a href="#cra">CRA e créditos</a><a href="#posso">Posso marcar?</a><a href="#desligamento">Desligamento</a><a href="#pedidos">Pedidos</a><a href="#apoio">Documentos</a><a href="#relatorio">Relatório</a>
     </nav>
   </div>
 </div>
@@ -223,6 +249,7 @@ footer .wrap{padding-block:22px;display:grid;gap:6px;font-size:14px;color:var(--
           <input type="month" id="today">
         </label>
       </div>
+      <div class="next" id="next" aria-live="polite"></div>
       <div class="progress" id="progress"></div>
       <ol class="tl" id="timeline"></ol>
       <p class="info-box"><b>Todo período letivo, matricule-se em disciplinas ou em trabalho final.</b> Sem matrícula, há desligamento <span class="art">Art. 48, 65 X</span>. A interrupção de estudos aprovada não conta no prazo <span class="art">Art. 51 §2</span>.</p>
@@ -257,6 +284,30 @@ footer .wrap{padding-block:22px;display:grid;gap:6px;font-size:14px;color:var(--
         <span>Aproveitamento por conceito: <b>A = 9,5</b> · <b>B = 8,5</b> · <b>C = 7,5</b> <span class="art">Art. 64 §14</span></span>
       </div>
     </div>
+    <div class="panel" style="display:grid;gap:10px">
+      <div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 16px;align-items:baseline"><h3>Tabela de Estudos Especiais</h3><span class="art">Res. PPGC 1/2025, Art. 1º</span></div>
+      <div class="tablebox"><table class="ee-table"><thead><tr><th scope="col">Atividade</th><th scope="col" style="text-align:right">Créditos</th></tr></thead><tbody>
+        <tr><td>Publicação de livro autoral de caráter acadêmico, com conselho editorial</td><td class="num">4</td></tr>
+        <tr><td>Tradução de livro relacionado à área</td><td class="num">2</td></tr>
+        <tr><td>Organização de livro ou publicação de capítulo, com conselho editorial</td><td class="num">2</td></tr>
+        <tr><td>Artigo em periódico Qualis A1–A4 (novo Qualis) ou A1–B1 (2013–2016)</td><td class="num">2</td></tr>
+        <tr><td>Bolsa de mestrado sanduíche internacional, financiada por instituição de pesquisa</td><td class="num">2</td></tr>
+        <tr><td>Premiação em mostras e festivais nacionais ou internacionais</td><td class="num">2</td></tr>
+        <tr><td>Artigo em periódico Qualis B1–B4 (novo Qualis) ou B2–B5 (2013–2016)</td><td class="num">1</td></tr>
+        <tr><td>Trabalho completo apresentado em evento científico, publicado em anais</td><td class="num">1</td></tr>
+        <tr><td>Autoria de relatório técnico de projeto de pesquisa financiado</td><td class="num">1</td></tr>
+        <tr><td>Palestrante convidado, conferencista ou debatedor em mesa-redonda</td><td class="num">1</td></tr>
+        <tr><td>Membro da equipe organizadora de evento científico</td><td class="num">1</td></tr>
+        <tr><td>Avaliador, curador, parecerista ou comitê científico de evento</td><td class="num">1</td></tr>
+        <tr><td>Oferta de curso, minicurso, workshop ou afins</td><td class="num">1</td></tr>
+        <tr><td>Participação em projeto de extensão, com relatório</td><td class="num">1</td></tr>
+        <tr><td>Representação discente em comissões do PPGC ou outras organizações, com portaria</td><td class="num">1</td></tr>
+        <tr><td>Participação assídua no grupo de pesquisa do orientador, com relatório</td><td class="num">1 por ano</td></tr>
+        <tr><td>Apoio à divulgação científica do Programa</td><td class="num">1 por ano</td></tr>
+        <tr><td>Participação em projeto de pesquisa com financiamento externo, com relatório</td><td class="num">1 por ano</td></tr>
+      </tbody></table></div>
+      <p class="note">O total aproveitado é de no máximo 4 créditos, mesmo que a soma seja maior. A comprovação é feita com certificados ou publicações <span class="art">Res. 1/2025, Art. 2º–4º</span>.</p>
+    </div>
   </section>
 
   <section id="posso">
@@ -289,9 +340,50 @@ footer .wrap{padding-block:22px;display:grid;gap:6px;font-size:14px;color:var(--
       <article class="card"><h3>Regime acadêmico especial</h3><p>Com atestado médico: alunas gestantes por 4 meses a partir do 8º mês, ou estudantes em condição física incompatível com a frequência.</p><span><span class="art">Art. 52</span></span></article>
       <article class="card"><h3>Aproveitar disciplinas</h3><p>Cursadas há no máximo 5 anos, com nota 7,0 ou mais, até 50% dos créditos. Fora da estrutura do PPGC, no máximo 1 disciplina. Como aluno especial, valem as cursadas nos 36 meses anteriores.</p><span><span class="art">Art. 31 §5, 64</span></span></article>
       <article class="card"><h3>Estágio Docência</h3><p>Até 2 créditos, que contam para os 22. Obrigatório para bolsistas CAPES. O período é combinado com o orientador, e o relatório vai ao Colegiado.</p><span><span class="art">Art. 57</span></span></article>
-      <article class="card"><h3>Estudos Especiais</h3><p>Atividades fora da estrutura curricular, pedidas pelo orientador, valem até 4 créditos e entram no CRA como disciplinas.</p><span><span class="art">Art. 56 §2, 60 §3</span></span></article>
+      <article class="card"><h3>Estudos Especiais</h3><p>Créditos por atividades acadêmicas fora das disciplinas, até 4 no total. Você pede, com anuência do orientador, num processo único ao Colegiado, com os comprovantes. Veja a tabela na <a href="#cra" style="color:var(--accent)">seção 2</a>.</p><span><span class="art">Art. 56 §2 · Res. PPGC 1/2025</span></span></article>
       <article class="card"><h3>Trocar de orientador</h3><p>Com a anuência do orientador atual e do novo, e aprovação do Colegiado. Sem acordo, o Colegiado decide.</p><span><span class="art">Art. 22 §11, 24</span></span></article>
       <article class="card"><h3>Pesquisa com seres humanos</h3><p>O projeto precisa ser aprovado pelo Comitê de Ética em Pesquisa antes de começar, com autorização do orientador.</p><span><span class="art">Art. 23 III, 29 V</span></span></article>
+    </div>
+  </section>
+
+  <section id="apoio">
+    <div class="sec-head">
+      <span class="eyebrow">6 · Apoio</span>
+      <h2>Documentos oficiais</h2>
+      <p class="muted">Quando o guia não resolver, consulte o texto oficial.</p>
+    </div>
+    <a class="doc-card" href="https://www.cchla.ufpb.br/ppgc/resolucoes/" target="_blank" rel="noopener">
+      <div class="doc-list">
+        <span class="label">Na página de resoluções do PPGC</span>
+        <span class="doc-item"><b>Regulamento do PPGC</b> · Resolução Consepe nº 10/2024</span>
+        <span class="doc-item"><b>Estudos Especiais</b> · Resolução PPGC nº 1/2025</span>
+        <span class="doc-item">e as demais normas do programa</span>
+      </div>
+      <span class="go">Abrir página de resoluções ↗</span>
+    </a>
+  </section>
+
+  <section id="relatorio">
+    <div class="sec-head">
+      <span class="eyebrow">7 · Para o orientador</span>
+      <h2>Relatório de acompanhamento</h2>
+      <p class="muted">Um resumo em imagem, montado a partir do que você preencheu acima. Baixe e envie ao seu orientador por e-mail ou mensagem.</p>
+    </div>
+    <div class="panel report-panel">
+      <div class="report-fields">
+        <label class="field" for="rep-nome">Seu nome<input type="text" id="rep-nome" maxlength="80" placeholder="Nome completo"></label>
+        <label class="field" for="rep-obs">Observação para o orientador (opcional)<input type="text" id="rep-obs" maxlength="240" placeholder="Ex.: preciso conversar sobre a banca da pré-banca"></label>
+      </div>
+      <div class="report-img-wrap"><img id="report-img" alt="Relatório de acompanhamento em imagem"></div>
+      <pre class="report" id="report" hidden></pre>
+      <div class="row-actions">
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <a class="btn primary" id="rep-down" download="relatorio-ppgc.png" href="#">Baixar imagem</a>
+          <button type="button" class="btn" id="rep-copyimg">Copiar imagem</button>
+          <button type="button" class="btn" id="rep-copy">Copiar como texto</button>
+        </div>
+        <span class="small muted" id="rep-msg">Confira se as informações acima estão atualizadas antes de enviar. No celular, toque e segure a imagem para salvar.</span>
+      </div>
     </div>
   </section>
 
@@ -300,7 +392,7 @@ footer .wrap{padding-block:22px;display:grid;gap:6px;font-size:14px;color:var(--
 
 <footer>
   <div class="wrap">
-    <p>Este guia resume o Regulamento do Programa de Pós-Graduação em Comunicação da UFPB (Resolução Consepe nº 10/2024, mestrado acadêmico) e não o substitui. Ele vale para quem ingressou a partir do 1º período letivo de 2023 <span class="art">Art. 87</span>. Em caso de dúvida, vale o texto do regulamento; casos omissos são decididos pelo Consepe, ouvido o Colegiado <span class="art">Art. 88</span>.</p>
+    <p>Este guia resume o Regulamento do Programa de Pós-Graduação em Comunicação da UFPB (Resolução Consepe nº 10/2024, mestrado acadêmico) e não o substitui. Ele vale para quem ingressou a partir do 1º período letivo de 2023 <span class="art">Art. 87</span>. Em caso de dúvida, vale o texto do regulamento (<a href="https://www.cchla.ufpb.br/ppgc/resolucoes/" target="_blank" rel="noopener" style="color:var(--accent)">resoluções do PPGC</a>); casos omissos são decididos pelo Consepe, ouvido o Colegiado <span class="art">Art. 88</span>.</p>
   </div>
 </footer>
 
@@ -308,7 +400,7 @@ footer .wrap{padding-block:22px;display:grid;gap:6px;font-size:14px;color:var(--
 (function(){
   const MAX=24, EXT=6, TOTAL=22, OBR=8, OPT=12, OPT_DISC=8, EE_MAX=4, ED_MAX=2;
   const TIPOS={ob:"Obrigatória", od:"Optativa (disciplina)", oa:"Optativa (atividade)", ee:"Estudos Especiais", ed:"Estágio Docência"};
-  const IN_CRA={ob:1, od:1, ee:1};
+  const IN_CRA={ob:1, od:1};
   const store={
     get(k,d){ try{ const v=localStorage.getItem("ppgc:"+k); return v?JSON.parse(v):d }catch(e){ return d } },
     set(k,v){ try{ localStorage.setItem("ppgc:"+k, JSON.stringify(v)) }catch(e){} }
@@ -319,7 +411,7 @@ footer .wrap{padding-block:22px;display:grid;gap:6px;font-size:14px;color:var(--
     {n:"Optativa da linha (exemplo)", t:"od", c:4, nota:"7.5", f:false},
     {n:"Optativa (exemplo)", t:"od", c:4, nota:"", f:false}
   ];
-  let state={ rows: store.get("rows", EXAMPLE.map(r=>({...r}))), checks: store.get("checks",{}), start: store.get("start","2025-03") };
+  let state={ rows: store.get("rows", EXAMPLE.map(r=>({...r}))), checks: store.get("checks",{}), start: store.get("start",(()=>{ const d=new Date(); d.setMonth(d.getMonth()-8); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0"); })()) };
   const $=s=>document.querySelector(s);
   const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
   const br=(x,d)=>x.toFixed(d).replace(".",",");
@@ -338,7 +430,9 @@ footer .wrap{padding-block:22px;display:grid;gap:6px;font-size:14px;color:var(--
     let pts=0, cc=0, rep=0, ob=0, od=0, oa=0, ee=0, ed=0, curso=0;
     const parts=[];
     state.rows.forEach(r=>{
-      const c=Math.max(0,Number(r.c)||0), n=nota(r);
+      const c=Math.max(0,Number(r.c)||0);
+      if(r.t==="ee"){ ee+=c; return; }
+      const n=nota(r);
       if(n===null){ curso++; return; }
       if(IN_CRA[r.t] && c){ pts+=n*c; cc+=c; parts.push(br(n,1)+"×"+c); }
       if(n<7){ if(IN_CRA[r.t]) rep++; return; }
@@ -350,44 +444,98 @@ footer .wrap{padding-block:22px;display:grid;gap:6px;font-size:14px;color:var(--
     return {cra: cc? pts/cc : null, pts, cc, parts, rep, ob, od, oa, ee, ed, eeC, edC, opt, total, ok, curso};
   }
 
-  function milestones(){ return [
-    {at:0, t:"Início do 1º período letivo", d:"Começa a contar o prazo do curso. Faça a matrícula institucional e a matrícula em disciplinas no calendário do programa.", a:"Art. 46, 48, 54"},
-    {at:12, t:"Prazo da proficiência em língua estrangeira", d:"Apresente a aprovação em espanhol, inglês ou francês (nota 7,0 ou conceito aprovado). Também é o prazo mínimo para concluir o mestrado. O Art. 39 §3 menciona 18 meses para repetir o exame: confirme seu prazo com a coordenação.", a:"Art. 39, 54, 63"},
-    {at:18, t:"Prazo máximo para o exame de pré-banca", d:"Depois de integralizar os créditos em disciplinas. O material vai à banca 20 dias antes. Pode ser prorrogado por até 1 mês, com justificativa do orientador e aprovação do Colegiado.", a:"Art. 67 §3–4"},
-    {at:24, t:"Prazo máximo para a defesa", d:"O pedido de prorrogação deve ser feito antes desta data, com justificativa, parecer do orientador, versão preliminar e cronograma.", a:"Art. 54, 55 §2, §4", kind:"limit"},
-    {at:30, t:"Fim da prorrogação máxima", d:"Até 6 meses, em caráter excepcional, só para quem já integralizou todos os créditos e foi aprovado na pré-banca.", a:"Art. 55 §1", kind:"limit"}
+  // marcos: kind "check" usa uma caixa compartilhada com o checklist; "auto" vem da calculadora
+  function milestones(c){ return [
+    {at:0, t:"Início do 1º período letivo", d:"Começa a contar o prazo do curso. Faça a matrícula institucional e a matrícula em disciplinas.", a:"Art. 46, 48, 54", kind:"start"},
+    {at:6, t:"Matrícula do 2º período", d:"Matricule-se em disciplinas ou em trabalho final.", a:"Art. 48, 65 X", kind:"tick"},
+    {at:12, t:"Matrícula do 3º período", d:"Matricule-se em disciplinas ou em trabalho final.", a:"Art. 48, 65 X", kind:"tick"},
+    {at:12, t:"Proficiência em língua estrangeira", d:"Aprovação em espanhol, inglês ou francês (nota 7,0 ou conceito aprovado). O Art. 39 §3 menciona 18 meses para repetir o exame: confirme seu prazo com a coordenação.", a:"Art. 39, 63", kind:"check", k:"d-ling", done:"Proficiência aprovada",
+      late:'Sem a proficiência, o desligamento é recomendado ao Colegiado <span class="art">Art. 39 §5, 65 III</span>.'},
+    {at:18, t:"Matrícula do 4º período", d:"Matricule-se em disciplinas ou em trabalho final.", a:"Art. 48, 65 X", kind:"tick"},
+    {at:18, t:"Créditos em disciplinas integralizados", d:`${TOTAL} créditos, com ${OBR} na obrigatória e ${OPT} em optativas. É requisito para a pré-banca.`, a:"Art. 56, 67", kind:"auto", ok:c.ok, info:`calculadora: ${c.total} de ${TOTAL} créditos`,
+      late:'Sem os créditos, você não pode fazer o exame de pré-banca <span class="art">Art. 67</span>.'},
+    {at:18, t:"Envio do material da pré-banca", d:"Pelo menos um capítulo teórico-metodológico e o plano de trabalho (50 a 100 páginas), aprovados pelo orientador, para a banca e a secretaria, 20 dias antes do exame.", a:"Art. 67 §1, §3", kind:"check", k:"p-envio", done:"Material enviado"},
+    {at:18, t:"Exame de pré-banca", d:"Prazo máximo, prorrogável por até 1 mês com justificativa do orientador e aprovação do Colegiado. Reprovou? Pode repetir uma vez em até 60 dias.", a:"Art. 67 §4, §8", kind:"check", k:"d-pre", done:"Aprovado na pré-banca",
+      late:'Não se apresentar no prazo conta como reprovação <span class="art">Art. 67 §5</span>.'},
+    {at:24, t:"Defesa da dissertação", d:"Prazo máximo do curso. O pedido de prorrogação deve ser feito antes desta data, com justificativa, parecer do orientador, versão preliminar e cronograma.", a:"Art. 54, 55 §2, §4", kind:"check", k:"d-def", done:"Defesa realizada",
+      late:'Sem defesa ou prorrogação concedida, há desligamento <span class="art">Art. 65 VII</span>.'},
+    {at:30, t:"Fim da prorrogação máxima", d:"Até 6 meses, em caráter excepcional, só para quem já integralizou todos os créditos e foi aprovado na pré-banca.", a:"Art. 55 §1", kind:"info"}
   ]}
 
-  function renderTimeline(){
-    const s=pm($("#start").value), today=pm($("#today").value), tl=$("#timeline"), pr=$("#progress");
-    if(!s){ tl.innerHTML='<li><span></span><span></span><div class="body muted">Informe o início do 1º período letivo.</div></li>'; pr.innerHTML=""; return null; }
-    const el=today?diff(s,today):0;
+  function statusOf(m, el){
+    const done = m.kind==="check" ? !!state.checks[m.k] : m.kind==="auto" ? m.ok : null;
+    if(done===null) return null;
+    if(done) return {cls:"ok", txt:"cumprido", done:true};
+    if(el===null) return {cls:"nt", txt:"pendente"};
+    const left=m.at-el;
+    if(left<0) return {cls:"no", txt:`atrasado há ${-left} ${-left===1?"mês":"meses"}`, late:true};
+    if(left<=3) return {cls:"wn", txt:left===0?"vence este mês":`vence em ${left} ${left===1?"mês":"meses"}`};
+    return {cls:"nt", txt:"no prazo"};
+  }
+
+  function renderTimeline(c){
+    const s=pm($("#start").value), today=pm($("#today").value), tl=$("#timeline"), pr=$("#progress"), nx=$("#next");
+    if(!s){ tl.innerHTML='<li><span></span><span></span><div class="body muted">Informe o início do 1º período letivo.</div></li>'; pr.innerHTML=""; nx.innerHTML=""; return null; }
+    const raw=today?diff(s,today):null, el=(raw!==null&&raw>=0)?raw:null;
+    const ms=milestones(c);
     let html="", placed=false;
-    const todayItem=()=>`<li class="today"><div class="when">${fmt(today)}<small>mês ${el}</small></div><div class="rail"><span class="dot"></span></div><div class="body"><h3>Você está aqui</h3><p class="small muted">${el<0?"Antes do início do curso.":`${Math.max(0,MAX-el)} meses até o prazo máximo.`}</p></div></li>`;
-    milestones().forEach(m=>{
-      if(today && !placed && el<m.at){ html+=todayItem(); placed=true; }
-      const cls=[m.kind||"", today&&el>=m.at?"past":""].join(" ");
-      html+=`<li class="${cls}"><div class="when">${fmt(add(s,m.at))}<small>mês ${m.at}</small></div><div class="rail"><span class="dot"></span></div><div class="body"><h3>${m.t}</h3><p class="small muted">${m.d}</p><div><span class="art">${m.a}</span></div></div></li>`;
+    const todayItem=()=>`<li class="today"><div class="when">${fmt(today)}<small>mês ${raw}</small></div><div class="rail"><span class="dot"></span></div><div class="body"><h3>Você está aqui</h3><p class="small muted">${raw<0?"Antes do início do curso.":`${Math.max(0,MAX-raw)} meses até o prazo máximo.`}</p></div></li>`;
+    ms.forEach(m=>{
+      if(today && !placed && raw<m.at){ html+=todayItem(); placed=true; }
+      const st=statusOf(m, el);
+      const past = today && raw>=m.at;
+      const cls=["k-"+m.kind, past?"past":"", st&&st.done?"done":"", st&&st.late?"late":""].join(" ");
+      const pill = st ? `<span class="pill ${st.cls}">${st.txt}</span>` : "";
+      const ctl = m.kind==="check" ? `<label class="chk tl-chk" for="tl-${m.k}"><input type="checkbox" id="tl-${m.k}" data-k="${m.k}"${state.checks[m.k]?" checked":""}>${m.done}</label>`
+                : m.kind==="auto" ? `<span class="auto">${m.info}</span>` : "";
+      if(m.kind==="tick"){
+        html+=`<li class="${cls}"><div class="when">${fmt(add(s,m.at))}<small>mês ${m.at}</small></div><div class="rail"><span class="dot"></span></div><div class="body"><p class="small"><b>${m.t}.</b> <span class="muted">${m.d}</span> <span class="art">${m.a}</span></p></div></li>`;
+        return;
+      }
+      html+=`<li class="${cls}"><div class="when">${fmt(add(s,m.at))}<small>mês ${m.at}</small></div><div class="rail"><span class="dot"></span></div><div class="body">
+        <div class="tl-head"><h3>${m.t}</h3>${pill}</div>
+        <p class="small muted">${m.d}</p>
+        ${st&&st.late&&m.late?`<p class="small late-msg">${m.late}</p>`:""}
+        <div class="tl-foot"><span class="art">${m.a}</span>${ctl}</div></div></li>`;
     });
     if(today && !placed) html+=todayItem();
     tl.innerHTML=html;
-    const span=MAX+EXT, pct=Math.max(0,Math.min(100,el/span*100)), maxPct=MAX/span*100;
+
+    // próximo passo
+    const pend=ms.filter(m=>(m.kind==="check"||m.kind==="auto") && !(statusOf(m,el)||{}).done);
+    if(!pend.length){
+      nx.className="next ok-box";
+      nx.innerHTML=`<span class="label">Próximo passo</span><p><b>Tudo cumprido.</b> Depois da defesa, entregue a versão final em até 90 dias <span class="art">Art. 74 §3</span>.</p>`;
+    } else {
+      const m=pend[0], st=statusOf(m,el), when=fmt(add(s,m.at));
+      let extra="";
+      if(m.k==="d-ling") extra="Apresente o certificado ou faça o exame oferecido pelo programa.";
+      if(m.kind==="auto") extra=`Faltam ${Math.max(0,TOTAL-c.total)} créditos${c.ob<OBR?`, incluindo ${OBR-c.ob} na obrigatória`:""}.`;
+      if(m.k==="p-envio") extra="O material vai à banca e à secretaria 20 dias antes do exame.";
+      if(m.k==="d-pre") extra="Combine a data com seu orientador e a banca.";
+      if(m.k==="d-def") extra="Confira os requisitos da defesa na seção 3.";
+      const timing = el===null ? "" : st.late ? ` <span class="pill no">${st.txt}</span>` : ` <span class="pill ${st.cls==="wn"?"wn":"nt"}">faltam ${m.at-el} ${m.at-el===1?"mês":"meses"}</span>`;
+      nx.className="next"+(st.late?" late-box":"");
+      nx.innerHTML=`<span class="label">Próximo passo</span><p><b>${m.t}</b> até ${when}.${timing}</p><p class="small muted">${extra}</p>`;
+    }
+
+    const span=MAX+EXT, pct=Math.max(0,Math.min(100,(raw||0)/span*100)), maxPct=MAX/span*100;
     pr.innerHTML=`<div class="track" aria-hidden="true"><div class="ext" style="left:${maxPct}%;right:0"></div><div class="fill" style="width:${pct}%"></div></div>
       <div class="track-labels"><span>início</span><span>pré-banca · mês 18</span><span>defesa · mês ${MAX}</span><span>+${EXT}</span></div>`;
-    return (today && el>=0) ? {el} : null;
+    return el===null ? null : {el};
   }
 
   function renderRows(){
     $("#rows").innerHTML = state.rows.map((r,i)=>{
-      const n=nota(r);
-      const st = n===null ? '<span class="pill nt">em curso</span>' : n>=7 ? '<span class="pill ok">aprovado</span>' : '<span class="pill no">reprovado</span>';
+      const n=nota(r), isEE=r.t==="ee";
+      const st = isEE ? '<span class="pill ok">créditos</span>' : n===null ? '<span class="pill nt">em curso</span>' : n>=7 ? '<span class="pill ok">aprovado</span>' : '<span class="pill no">reprovado</span>';
       const opts=Object.keys(TIPOS).map(k=>`<option value="${k}"${k===r.t?" selected":""}>${TIPOS[k]}</option>`).join("");
       return `<tr>
         <td><input type="text" id="n-${i}" data-i="${i}" data-f="n" value="${esc(r.n)}" aria-label="Nome da disciplina"></td>
         <td><select id="t-${i}" data-i="${i}" data-f="t" aria-label="Tipo">${opts}</select></td>
         <td><input type="number" id="c-${i}" data-i="${i}" data-f="c" min="0" max="12" value="${esc(r.c)}" aria-label="Créditos"></td>
-        <td><input type="number" id="v-${i}" data-i="${i}" data-f="nota" min="0" max="10" step="0.1" value="${esc(r.nota)}" placeholder="–" aria-label="Nota"${r.f?" disabled":""}></td>
-        <td class="st"><div style="display:grid;gap:4px;justify-items:start">${st}<label class="chk" for="f-${i}"><input type="checkbox" id="f-${i}" data-i="${i}" data-f="f"${r.f?" checked":""}>falta &gt; 25%</label></div></td>
+        <td>${isEE?'<span class="small muted">sem nota</span>':`<input type="number" id="v-${i}" data-i="${i}" data-f="nota" min="0" max="10" step="0.1" value="${esc(r.nota)}" placeholder="–" aria-label="Nota"${r.f?" disabled":""}>`}</td>
+        <td class="st"><div style="display:grid;gap:4px;justify-items:start">${st}${isEE?"":`<label class="chk" for="f-${i}"><input type="checkbox" id="f-${i}" data-i="${i}" data-f="f"${r.f?" checked":""}>falta &gt; 25%</label>`}</div></td>
         <td><button type="button" class="icon-btn" data-del="${i}" aria-label="Remover ${esc(r.n)}">×</button></td>
       </tr>`;
     }).join("") || `<tr><td colspan="6" class="muted small" style="padding:14px 6px">Nenhuma disciplina ainda. Use “Adicionar disciplina”.</td></tr>`;
@@ -398,7 +546,7 @@ footer .wrap{padding-block:22px;display:grid;gap:6px;font-size:14px;color:var(--
     const msg=c.cra===null?"lance ao menos uma nota":c.cra>=7?"acima do mínimo de 7,0":"abaixo de 7,0: risco de desligamento";
     $("#cra-result").innerHTML=`<div class="cra-big"><span class="k">Seu CRA</span><span class="v">${txt}</span><span class="pill ${cls}">${msg}</span></div>
       <div class="cra-calc"><span class="k">Como foi calculado</span><code>${c.parts.length?`(${c.parts.join(" + ")}) ÷ ${c.cc} = ${br(c.pts,1)} ÷ ${c.cc} = ${txt}`:"sem notas lançadas"}</code>
-      <span class="small muted">Entram no CRA as disciplinas e os Estudos Especiais, aprovados ou não <span class="art">Art. 60 §2–3</span>. Atividades optativas e Estágio Docência contam crédito, mas não entram na média.</span></div>`;
+      <span class="small muted">Entram no CRA as disciplinas, aprovadas ou não <span class="art">Art. 60 §2</span>. Atividades optativas e Estágio Docência contam crédito, mas não entram na média. Estudos Especiais valem créditos por pontuação, sem nota, e por isso o guia não os põe na média, embora o Art. 60 §3 diga que contam como disciplinas: confirme com a coordenação.</span></div>`;
     const box=(k,v,need,note)=>`<div class="cr${v>=need?" done":""}"><span class="k">${k}</span><span class="v">${v} / ${need}</span><div class="meter" aria-hidden="true"><i style="width:${Math.min(100,v/need*100)}%"></i></div>${note?`<span class="k">${note}</span>`:""}</div>`;
     $("#credits").innerHTML = box("Obrigatória", c.ob, OBR) + box("Optativas", c.opt, OPT, `${c.od} em disciplinas (mín. ${OPT_DISC})`) + box("Total para o título", c.total, TOTAL, `Art. 56${c.ee>EE_MAX?" · Estudos Especiais limitados a 4":""}${c.ed>ED_MAX?" · Estágio limitado a 2":""}`);
   }
@@ -461,7 +609,130 @@ footer .wrap{padding-block:22px;display:grid;gap:6px;font-size:14px;color:var(--
       <div class="stat"><span class="k">Meses até o prazo máximo</span><span class="v">${left===null?"–":Math.max(left,0)}</span><span class="s"><span class="pill ${leftCls}">${left===null?"informe a data":left<0?"prazo vencido":left<=6?"avalie prorrogação":"no prazo"}</span></span></div>`;
   }
 
-  function renderAll(){ const c=calc(), t=renderTimeline(); renderSummary(c,t); renderCRA(c); renderChecks(c); renderRisks(c); }
+  function reportData(c){
+    const s0=pm($("#start").value), today=pm($("#today").value);
+    const raw=(s0&&today)?diff(s0,today):null, el=(raw!==null&&raw>=0)?raw:null;
+    const d={nome:($("#rep-nome").value||"").trim(), obs:($("#rep-obs").value||"").trim(), hoje:new Date().toLocaleDateString("pt-BR"),
+      el, s0, cra:c.cra, total:c.total, rep:c.rep, late:[], soon:[], done:[], next:null, allDone:false};
+    d.craTxt=c.cra===null?"–":br(c.cra,2);
+    if(s0){
+      d.prazoMax=fmt(add(s0,MAX)); d.vencido=el!==null&&MAX-el<0;
+      const st=milestones(c).filter(m=>m.kind==="check"||m.kind==="auto").map(m=>({m, st:statusOf(m,el)}));
+      const pend=st.filter(x=>!x.st.done).sort((a,b)=>a.m.at-b.m.at);
+      d.late=pend.filter(x=>x.st.late).map(x=>({t:x.m.t, when:fmt(add(s0,x.m.at))}));
+      d.soon=pend.filter(x=>!x.st.late&&x.st.cls==="wn").map(x=>({t:x.m.t, when:fmt(add(s0,x.m.at))}));
+      d.done=st.filter(x=>x.st.done).map(x=>x.m.t);
+      if(pend.length){ const n=pend[0]; d.next={t:n.m.t, when:fmt(add(s0,n.m.at)), late:!!n.st.late, left:el===null?null:n.m.at-el}; }
+      else d.allDone=true;
+    }
+    return d;
+  }
+  function reportText(d){
+    const out=["RELATÓRIO DE ACOMPANHAMENTO · PPGC · MESTRADO", `${d.nome||"Discente: (informe seu nome)"} · ${d.hoje}`, ""];
+    out.push(d.s0?`Prazo: mês ${d.el===null?"–":d.el} de ${MAX} · prazo máximo em ${d.prazoMax}${d.vencido?" (VENCIDO)":""}`:"Prazo: início do curso não informado");
+    out.push(`CRA: ${d.cra===null?"sem notas lançadas":d.craTxt}${d.cra!==null&&d.cra<7?" (abaixo do mínimo de 7,0)":""} · Créditos: ${d.total} de ${TOTAL}`);
+    if(d.rep) out.push(`Reprovações: ${d.rep}${d.rep>=2?" (situação de desligamento, Art. 65 II)":""}`);
+    if(d.s0){
+      out.push("", d.next?`Próximo passo: ${d.next.t} até ${d.next.when}${d.next.late?" (atrasado)":d.next.left!==null?` (faltam ${d.next.left} meses)`:""}`:"Próximo passo: todos os requisitos marcados como cumpridos");
+      if(d.late.length){ out.push("","Atrasado:"); d.late.forEach(x=>out.push(`- ${x.t} (prazo ${x.when})`)); }
+      if(d.soon.length){ out.push("","Vence em até 3 meses:"); d.soon.forEach(x=>out.push(`- ${x.t} (prazo ${x.when})`)); }
+      if(d.done.length) out.push("",`Já cumprido: ${d.done.join("; ")}`);
+    }
+    if(d.obs) out.push("",`Observação: ${d.obs}`);
+    return out.join("\n");
+  }
+
+  const RC={bg:"#F5F3F3", card:"#FFFFFF", ink:"#1E1A1B", muted:"#625A5C", line:"#E2DCDD", accent:"#B3222A", accentSoft:"#F7E3E4", info:"#EEEAEA",
+    a:"#231D1F", b:"#5A1519", good:"#2E7D4F", goodSoft:"#E1F2E7", warn:"#A86B00", warnSoft:"#FBEFD6", bad:"#B23A26", badSoft:"#F8E1DC"};
+  const FD='Archivo,"Segoe UI",sans-serif', FB='"Source Sans 3",system-ui,sans-serif', FM='"IBM Plex Mono",ui-monospace,monospace';
+  function rr(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+  function wrapText(ctx,text,maxW){ const words=String(text).split(" "), lines=[]; let cur="";
+    words.forEach(w=>{ const t=cur?cur+" "+w:w; if(ctx.measureText(t).width>maxW && cur){ lines.push(cur); cur=w; } else cur=t; }); if(cur) lines.push(cur); return lines; }
+
+  function drawReport(d){
+    const W=1080, P=60, cv=document.createElement("canvas"); cv.width=W; cv.height=3000;
+    const ctx=cv.getContext("2d");
+    ctx.fillStyle=RC.bg; ctx.fillRect(0,0,W,3000);
+    const HH=210, g=ctx.createLinearGradient(0,0,W,HH); g.addColorStop(0,RC.a); g.addColorStop(.45,RC.a); g.addColorStop(1,RC.b);
+    ctx.fillStyle=g; ctx.fillRect(0,0,W,HH);
+    const lg=document.querySelector(".logo-card img"); let lx=W-P;
+    try{ if(lg&&lg.naturalWidth){ const h=78, w=lg.naturalWidth/lg.naturalHeight*h, cw=w+32, ch=h+24; lx-=cw; ctx.fillStyle="#FFFFFF"; rr(ctx,lx,(HH-ch)/2,cw,ch,14); ctx.fill(); ctx.drawImage(lg,lx+16,(HH-ch)/2+12,w,h); } }catch(e){}
+    ctx.textBaseline="alphabetic";
+    ctx.fillStyle="#F3B3B6"; ctx.font=`500 22px ${FM}`; ctx.fillText("RELATÓRIO DE ACOMPANHAMENTO",P,64);
+    ctx.fillStyle="#FFFFFF"; ctx.font=`800 46px ${FD}`; ctx.fillText(wrapText(ctx,d.nome||"Discente",lx-P-30)[0],P,128);
+    ctx.fillStyle="rgba(255,255,255,.82)"; ctx.font=`400 26px ${FB}`; ctx.fillText(`Mestrado · PPGC/UFPB · ${d.hoje}`,P,172);
+    let y=HH+40;
+    const gap=20, tw=(W-2*P-2*gap)/3, th=190;
+    [ {k:"Mês do curso", v:d.el===null?"–":`${d.el} / ${MAX}`, s:d.s0?`prazo máx. ${d.prazoMax}`:"sem data de início", c:d.vencido?RC.bad:RC.muted},
+      {k:"Rendimento (CRA)", v:d.craTxt, s:d.cra===null?"sem notas":d.cra>=7?"acima de 7,0":"abaixo de 7,0", c:d.cra===null?RC.muted:d.cra>=7?RC.good:RC.bad},
+      {k:"Créditos", v:`${d.total} / ${TOTAL}`, s:d.rep?`${d.rep} reprovaç${d.rep>1?"ões":"ão"}`:"para o título", c:d.rep>=2?RC.bad:d.rep===1?RC.warn:RC.muted, bar:Math.min(1,d.total/TOTAL)}
+    ].forEach((t,i)=>{ const x=P+i*(tw+gap);
+      ctx.fillStyle=RC.card; rr(ctx,x,y,tw,th,16); ctx.fill(); ctx.strokeStyle=RC.line; ctx.lineWidth=2; ctx.stroke();
+      ctx.fillStyle=RC.muted; ctx.font=`400 23px ${FB}`; ctx.fillText(t.k,x+24,y+44);
+      ctx.fillStyle=RC.ink; ctx.font=`500 54px ${FM}`; ctx.fillText(t.v,x+24,y+112);
+      if(t.bar!=null){ ctx.fillStyle=RC.line; rr(ctx,x+24,y+132,tw-48,10,5); ctx.fill(); ctx.fillStyle=t.bar>=1?RC.good:RC.ink; if(t.bar>0){ rr(ctx,x+24,y+132,Math.max(10,(tw-48)*t.bar),10,5); ctx.fill(); } }
+      ctx.fillStyle=t.c; ctx.font=`700 22px ${FB}`; ctx.fillText(t.s,x+24,y+(t.bar!=null?172:160));
+    });
+    y+=th+44;
+    if(d.s0){
+      ctx.fillStyle=RC.muted; ctx.font=`500 20px ${FM}`; ctx.fillText("PRAZO DO CURSO",P,y); y+=22;
+      const bw=W-2*P, span=MAX+EXT, pct=Math.max(0,Math.min(1,(d.el||0)/span)), mx=MAX/span, px=18/span;
+      ctx.fillStyle=RC.line; rr(ctx,P,y,bw,16,8); ctx.fill();
+      ctx.fillStyle=RC.warnSoft; rr(ctx,P+bw*mx,y,bw*(1-mx),16,8); ctx.fill();
+      ctx.fillStyle=d.vencido?RC.bad:RC.accent; if(pct>0){ rr(ctx,P,y,Math.max(16,bw*pct),16,8); ctx.fill(); }
+      ctx.fillStyle=RC.ink; ctx.fillRect(P+bw*mx-1,y-6,3,28); ctx.fillStyle=RC.muted; ctx.fillRect(P+bw*px-1,y-4,2,24);
+      y+=48; ctx.font=`400 20px ${FM}`; ctx.fillStyle=RC.muted;
+      ctx.fillText("início",P,y); ctx.textAlign="right"; ctx.fillText("pré-banca",P+bw*px-8,y); ctx.fillText("defesa",P+bw*mx-8,y); ctx.fillText(`+${EXT}`,W-P,y); ctx.textAlign="left";
+      y+=44;
+      const late=d.next&&d.next.late, bg=d.allDone?RC.goodSoft:late?RC.badSoft:RC.accentSoft, bcol=d.allDone?RC.good:late?RC.bad:RC.accent;
+      ctx.font=`800 34px ${FD}`;
+      const tl=wrapText(ctx,d.allDone?"Todos os requisitos cumpridos":d.next.t,W-2*P-60);
+      const detail=d.allDone?"Depois da defesa, versão final em até 90 dias.":`até ${d.next.when} · ${late?"atrasado":d.next.left!==null?`faltam ${d.next.left} ${d.next.left===1?"mês":"meses"}`:""}`;
+      const bh=60+tl.length*42+44;
+      ctx.fillStyle=bg; rr(ctx,P,y,W-2*P,bh,16); ctx.fill(); ctx.fillStyle=bcol; rr(ctx,P,y,10,bh,5); ctx.fill();
+      ctx.fillStyle=RC.muted; ctx.font=`500 20px ${FM}`; ctx.fillText("PRÓXIMO PASSO",P+34,y+42);
+      ctx.fillStyle=RC.ink; ctx.font=`800 34px ${FD}`; tl.forEach((l,i)=>ctx.fillText(l,P+34,y+86+i*42));
+      ctx.fillStyle=late?RC.bad:RC.muted; ctx.font=`700 24px ${FB}`; ctx.fillText(detail,P+34,y+86+tl.length*42+4);
+      y+=bh+72;
+      const list=(label,items,color,mark)=>{ if(!items.length) return;
+        ctx.fillStyle=color; ctx.beginPath(); ctx.arc(P+9,y-8,9,0,Math.PI*2); ctx.fill();
+        ctx.fillStyle=RC.ink; ctx.font=`800 26px ${FD}`; ctx.fillText(label,P+30,y); y+=40;
+        items.forEach(it=>{ ctx.font=`400 26px ${FB}`; const lines=wrapText(ctx,it,W-2*P-60);
+          ctx.fillStyle=color; ctx.font=`700 24px ${FB}`; ctx.fillText(mark,P+4,y); ctx.font=`400 26px ${FB}`; ctx.fillStyle=RC.ink;
+          lines.forEach((l,i)=>ctx.fillText(l,P+40,y+i*34)); y+=lines.length*34+10; });
+        y+=22; };
+      list("Atrasado", d.late.map(x=>`${x.t} (prazo ${x.when})`), RC.bad, "✕");
+      list("Vence em até 3 meses", d.soon.map(x=>`${x.t} (prazo ${x.when})`), RC.warn, "!");
+      list("Já cumprido", d.done, RC.good, "✓");
+    }
+    if(d.rep>=2){ ctx.fillStyle=RC.bad; ctx.font=`700 24px ${FB}`; ctx.fillText(`${d.rep} reprovações em disciplinas: situação de desligamento (Art. 65 II)`,P,y); y+=46; }
+    if(d.obs){
+      ctx.font=`400 26px ${FB}`; const ol=wrapText(ctx,d.obs,W-2*P-60), oh=56+ol.length*34+24;
+      ctx.fillStyle=RC.card; rr(ctx,P,y,W-2*P,oh,16); ctx.fill(); ctx.strokeStyle=RC.line; ctx.lineWidth=2; ctx.stroke();
+      ctx.fillStyle=RC.muted; ctx.font=`500 20px ${FM}`; ctx.fillText("OBSERVAÇÃO DO DISCENTE",P+30,y+42);
+      ctx.fillStyle=RC.ink; ctx.font=`400 26px ${FB}`; ol.forEach((l,i)=>ctx.fillText(l,P+30,y+84+i*34)); y+=oh+30;
+    }
+    y+=10; ctx.fillStyle=RC.line; ctx.fillRect(P,y,W-2*P,2); y+=40;
+    ctx.fillStyle=RC.muted; ctx.font=`400 21px ${FB}`; ctx.fillText("Gerado no Guia do Discente PPGC · Resolução Consepe nº 10/2024",P,y); y+=P-10;
+    const out=document.createElement("canvas"); out.width=W; out.height=Math.ceil(y); out.getContext("2d").drawImage(cv,0,0); return out;
+  }
+
+  let repTimer=null;
+  function renderReport(c){
+    const d=reportData(c);
+    $("#report").textContent=reportText(d);
+    clearTimeout(repTimer);
+    repTimer=setTimeout(()=>{
+      const go=()=>{ try{
+        const url=drawReport(d).toDataURL("image/png");
+        $("#report-img").src=url; $("#rep-down").href=url;
+        $("#rep-down").setAttribute("download","relatorio-ppgc"+(d.nome?"-"+d.nome.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""):"")+".png");
+      }catch(e){} };
+      (document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(go,go);
+    },120);
+  }
+
+  function renderAll(){ const c=calc(), t=renderTimeline(c); renderSummary(c,t); renderCRA(c); renderChecks(c); renderRisks(c); renderReport(c); }
   function save(){ store.set("rows",state.rows); store.set("checks",state.checks); store.set("start",$("#start").value); }
 
   $("#start").addEventListener("input",()=>{ save(); renderAll(); });
@@ -469,7 +740,7 @@ footer .wrap{padding-block:22px;display:grid;gap:6px;font-size:14px;color:var(--
   $("#rows").addEventListener("input",e=>{
     const el=e.target, f=el.dataset.f; if(!f) return; const i=+el.dataset.i;
     state.rows[i][f] = f==="f" ? el.checked : el.value; save();
-    if(f==="f"){ renderRows(); const nx=document.getElementById("f-"+i); if(nx) nx.focus(); }
+    if(f==="f"||f==="t"){ renderRows(); const nx=document.getElementById((f==="f"?"f-":"t-")+i); if(nx) nx.focus(); }
     if(f==="nota"){ const n=nota(state.rows[i]); el.closest("tr").querySelector(".pill").outerHTML = n===null?'<span class="pill nt">em curso</span>':n>=7?'<span class="pill ok">aprovado</span>':'<span class="pill no">reprovado</span>'; }
     renderAll();
   });
@@ -477,6 +748,30 @@ footer .wrap{padding-block:22px;display:grid;gap:6px;font-size:14px;color:var(--
   $("#add").addEventListener("click",()=>{ state.rows.push({n:"",t:"od",c:4,nota:"",f:false}); save(); renderRows(); renderAll(); const ins=document.querySelectorAll("#rows input[type=text]"); ins[ins.length-1]?.focus(); });
   $("#clear").addEventListener("click",()=>{ state.rows=state.rows.filter(r=>!/\(exemplo\)$/.test(r.n)); save(); renderRows(); renderAll(); });
   $("#checks").addEventListener("change",e=>{ const k=e.target.dataset.k; if(!k) return; state.checks[k]=e.target.checked; save(); renderAll(); });
+  $("#timeline").addEventListener("change",e=>{ const k=e.target.dataset.k; if(!k) return; state.checks[k]=e.target.checked; save(); renderAll(); const el=document.getElementById("tl-"+k); if(el) el.focus(); });
+
+  try{ $("#rep-nome").value=store.get("rep-nome",""); }catch(e){}
+  ["#rep-nome","#rep-obs"].forEach(id=>$(id).addEventListener("input",()=>{ if(id==="#rep-nome") store.set("rep-nome",$("#rep-nome").value); renderReport(calc()); }));
+  $("#rep-down").addEventListener("click",e=>{
+    const use=window.claude&&window.claude.use; if(!use) return;
+    e.preventDefault();
+    const a=$("#rep-down"), msg=$("#rep-msg");
+    window.claude.use("downloads").then(dl=>{
+      if(!dl){ msg.textContent="Para salvar, toque e segure (ou clique com o botão direito) na imagem."; return; }
+      return fetch(a.href).then(r=>r.blob()).then(b=>dl.save({filename:a.getAttribute("download"), data:b}))
+        .then(()=>{ msg.textContent="Imagem salva."; }, err=>{ if(!err||err.code!=="declined") msg.textContent="Não foi possível salvar aqui. Toque e segure (ou clique com o botão direito) na imagem."; });
+    }, ()=>{ msg.textContent="Para salvar, toque e segure (ou clique com o botão direito) na imagem."; });
+  });
+  $("#rep-copyimg").addEventListener("click",()=>{
+    const msg=$("#rep-msg"), img=$("#report-img");
+    const fail=()=>{ msg.textContent="Seu navegador não deixou copiar a imagem. Use “Baixar imagem” ou clique com o botão direito na imagem e copie."; };
+    try{ fetch(img.src).then(r=>r.blob()).then(b=>navigator.clipboard.write([new ClipboardItem({"image/png":b})])).then(()=>{ msg.textContent="Imagem copiada. Cole no e-mail ou na conversa com o orientador."; }, fail); }catch(e){ fail(); }
+  });
+  $("#rep-copy").addEventListener("click",()=>{
+    const txt=$("#report").textContent, msg=$("#rep-msg");
+    const sel=()=>{ msg.textContent="Não foi possível copiar. Use “Baixar imagem”."; };
+    try{ navigator.clipboard.writeText(txt).then(()=>{ msg.textContent="Texto copiado. Cole no e-mail ou na mensagem para o orientador."; }, sel); }catch(e){ sel(); }
+  });
 
   renderRows(); renderAll();
 })();
